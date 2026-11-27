@@ -1,0 +1,30 @@
+- name: Check desired image
+  ansible.builtin.command: "docker image inspect {{ app_image }}:{{ app_tag }}"
+  register: desired
+  changed_when: false
+  failed_when: false
+- name: Pull exact tag before changing the container
+  ansible.builtin.command: "docker pull {{ app_image }}:{{ app_tag }}"
+  when: desired.rc != 0
+- name: Check container image and status
+  ansible.builtin.command: docker inspect --format '{{ "{{.Config.Image}} {{.State.Running}}" }}' devops-ci-app
+  register: running
+  changed_when: false
+  failed_when: false
+- name: Replace the container if needed
+  when: running.stdout != (app_image + ':' + app_tag + ' true')
+  block:
+    - name: Remove the previous application container
+      ansible.builtin.command: docker rm -f devops-ci-app
+      when: running.rc == 0
+    - name: Run the selected application
+      ansible.builtin.command: >-
+        docker run -d --restart unless-stopped --name devops-ci-app
+        -p 127.0.0.1:5000:5000 {{ app_image }}:{{ app_tag }}
+- name: Check health
+  ansible.builtin.uri:
+    url: http://127.0.0.1:5000/health
+  register: health
+  until: health.status == 200 and health.json.status == 'ok'
+  retries: 10
+  delay: 2
