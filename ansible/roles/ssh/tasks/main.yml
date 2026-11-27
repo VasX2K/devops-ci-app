@@ -1,0 +1,19 @@
+- name: Ensure service account exists
+  ansible.builtin.user:
+    name: devops
+    shell: /bin/bash
+    create_home: true
+- name: Create SSH directory
+  ansible.builtin.file:
+    path: /home/devops/.ssh
+    state: directory
+    owner: devops
+    group: devops
+    mode: '0700'
+- name: Install existing public key
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/devops.pub"
+    dest: /home/devops/.ssh/authorized_keys
+    owner: devops
+    group: devops
+    mode: '0600'

@@ -1,0 +1,9 @@
+- name: Check proxy configuration
+  ansible.builtin.command: nginx -t
+  changed_when: false
+  listen: Reload Nginx
+- name: Apply proxy configuration
+  ansible.builtin.systemd:
+    name: nginx
+    state: reloaded
+  listen: Reload Nginx

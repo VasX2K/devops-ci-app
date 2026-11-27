@@ -1,0 +1,12 @@
+- name: Install runtime packages
+  ansible.builtin.apt:
+    name: [docker.io, nginx, curl]
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+    lock_timeout: 180
+- name: Start Docker
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started

@@ -1,0 +1,18 @@
+- name: Install default application proxy
+  ansible.builtin.copy:
+    dest: /etc/nginx/sites-available/default
+    mode: '0644'
+    content: |
+      server {
+        listen 80 default_server;
+        location / {
+          proxy_pass http://127.0.0.1:5000;
+          proxy_set_header Host $host;
+        }
+      }
+  notify: Reload Nginx
+- name: Enable Nginx
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: true
+    state: started
